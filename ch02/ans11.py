@@ -1,6 +1,5 @@
-with open('ch02/popular-names.txt', 'r') as f:
-    fileText = f.read()
-    after = fileText.replace('\t', ' ')
+import pandas as pd
 
-with open('ch02/popular-names_11p.txt', mode='w') as f:
-    f.write(after)
+
+df = pd.read_csv('ch02/popular-names.txt', sep='\t', header=None)
+df.to_csv('ch02/popular-names_11p.txt', sep=' ', index=False, header=None)
