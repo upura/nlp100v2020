@@ -2,4 +2,5 @@ env
 .vscode
 ch02/*.txt
 ch02/ans16_*
+ch04/neko.txt*
 *.gz
