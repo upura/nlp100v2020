@@ -14,9 +14,16 @@ def parseMecab(block):
         res.append(lineDict)
 
 
+def extract(block):
+    res = list(filter(lambda x: x['pos'] == '動詞', block))
+    res = [r['surface'] for r in res]
+    return res
+
+
 filename = 'ch04/neko.txt.mecab'
 with open(filename, mode='rt', encoding='utf-8') as f:
     blockList = f.read().split('EOS\n')
 blockList = list(filter(lambda x: x != '', blockList))
 blockList = [parseMecab(block) for block in blockList]
-print(blockList[5])
+ans = [extract(block) for block in blockList]
+print(ans[5])
