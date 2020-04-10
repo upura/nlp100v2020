@@ -1,6 +1,5 @@
 from collections import defaultdict
 import matplotlib.pyplot as plt
-import japanize_matplotlib
 
 
 def parseMecab(block):
@@ -33,9 +32,7 @@ d = defaultdict(int)
 for word in wordList:
     for w in word:
         d[w] += 1
-ans = sorted(d.items(), key=lambda x: x[1], reverse=True)[:10]
-labels = [a[0] for a in ans]
-values = [a[1] for a in ans]
+ans = d.values()
 plt.figure(figsize=(8, 8))
-plt.barh(labels, values)
+plt.hist(ans, bins=100)
 plt.show()
