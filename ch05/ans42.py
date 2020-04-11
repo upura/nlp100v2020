@@ -55,7 +55,5 @@ blockList = [parseCabocha(block) for block in blockList]
 for b in blockList:
     for m in b:
         if int(m.dst) > -1:
-            print(*[
-                ''.join([mo.surface for mo in m.morphs]),
-                ''.join([mo.surface for mo in b[int(m.dst)].morphs])
-            ], sep='\t')
+            print(''.join([mo.surface for mo in m.morphs]),
+                  ''.join([mo.surface for mo in b[int(m.dst)].morphs]), sep='\t')

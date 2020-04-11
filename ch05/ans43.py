@@ -60,4 +60,4 @@ for b in blockList:
             postText = ''.join([mo.surface for mo in b[int(m.dst)].morphs])
             postPos = [mo.pos for mo in b[int(m.dst)].morphs]
             if '名詞' in prePos and '動詞' in postPos:
-                print(*[preText, postText], sep='\t')
+                print(preText, postText, sep='\t')
