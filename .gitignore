@@ -1,8 +1,8 @@
 env
 .vscode
-ch02/*.txt
 ch02/ans16_*
-ch04/neko.txt*
-ch05/*.txt*
+*/*.txt*
 *.gz
 *.png
+*.zip
+ch06/NewsAggregatorDataset
