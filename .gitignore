@@ -6,4 +6,5 @@ ch02/ans16_*
 *.png
 *.zip
 *.joblib
+*.bin
 ch06/NewsAggregatorDataset
