@@ -3,6 +3,6 @@ env
 ch02/*.txt
 ch02/ans16_*
 ch04/neko.txt*
-ch05/neko.txt*
+ch05/*.txt*
 *.gz
 *.png
