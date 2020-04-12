@@ -1,11 +1,12 @@
 env
 .vscode
-ch02/ans16_*
 */*.txt*
+*.tsv
 *.gz
 *.png
 *.zip
 *.joblib
 *.bin
+ch02/ans16_*
 ch06/NewsAggregatorDataset
 ch07/wordsim353
