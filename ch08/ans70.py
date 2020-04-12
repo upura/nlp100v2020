@@ -37,11 +37,10 @@ joblib.dump(X_valid, 'ch08/X_valid.joblib')
 joblib.dump(X_test, 'ch08/X_test.joblib')
 
 y_data = data['CATEGORY'].map({'b': 0, 'e': 1, 't': 2, 'm': 3})
-y_data = np.identity(4)[y_data]
 
-y_train = y_data[:n_train]
-y_valid = y_data[n_train:n_train + n_valid]
-y_test = y_data[n_train + n_valid:]
+y_train = y_data.values[:n_train]
+y_valid = y_data.values[n_train:n_train + n_valid]
+y_test = y_data.values[n_train + n_valid:]
 
 joblib.dump(y_train, 'ch08/y_train.joblib')
 joblib.dump(y_valid, 'ch08/y_valid.joblib')
