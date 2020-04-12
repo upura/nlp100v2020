@@ -7,15 +7,8 @@ from tqdm import tqdm
 
 def culcSwem(row):
     global model
-    swem = []
-    for w in row['TITLE'].split():
-        if w in model.vocab:
-            swem.append(model[w])
-    swem = np.array(swem)
-    if len(swem) > 0:
-        swem = np.mean(swem, axis=0)
-    else:
-        swem = np.zeros(300,)
+    swem = [model[w] if w in model.vocab else np.zeros(shape=(model.vector_size,)) for w in row['TITLE'].split()]
+    swem = np.mean(np.array(swem), axis=0)
     return swem
 
 
@@ -36,9 +29,9 @@ tqdm.pandas()
 model = KeyedVectors.load_word2vec_format('ch07/GoogleNews-vectors-negative300.bin', binary=True)
 swemVec = data.progress_apply(culcSwem, axis=1)
 
-X_train = np.array(swemVec[:n_train])
-X_valid = np.array(swemVec[n_train:n_train + n_valid])
-X_test = np.array(swemVec[n_train + n_valid:])
+X_train = np.array(list(swemVec.values)[:n_train])
+X_valid = np.array(list(swemVec.values)[n_train:n_train + n_valid])
+X_test = np.array(list(swemVec.values)[n_train + n_valid:])
 joblib.dump(X_train, 'ch08/X_train.joblib')
 joblib.dump(X_valid, 'ch08/X_valid.joblib')
 joblib.dump(X_test, 'ch08/X_test.joblib')

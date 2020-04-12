@@ -30,6 +30,7 @@ scipy==1.4.1
 six==1.14.0
 smart-open==1.11.1
 soupsieve==2.0
+torch==1.4.0
 tqdm==4.45.0
 urllib3==1.25.8
 webencodings==0.5.1
