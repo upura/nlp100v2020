@@ -10,7 +10,7 @@ newsCorpora = newsCorpora[newsCorpora['PUBLISHER'].isin(
 X = newsCorpora[['TITLE', 'CATEGORY']]
 y = newsCorpora['CATEGORY']
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8, stratify=y, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=0)
 X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, stratify=y_test, random_state=0)
 
 X_train.to_csv('ch06/train.txt', sep='\t', index=False, header=None)
