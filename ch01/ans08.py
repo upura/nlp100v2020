@@ -1,10 +1,10 @@
 def cipher(text):
-    encodeText = [chr(219 - ord(w)) if 97 <= ord(w) <= 122 else w for w in text]
-    return encodeText
+    text = [chr(219 - ord(w)) if 97 <= ord(w) <= 122 else w for w in text]
+    return ''.join(text)
 
 
 text = 'this is a message.'
 ans = cipher(text)
-print(''.join(ans))
+print(ans)
 ans = cipher(ans)
-print(''.join(ans))
+print(ans)
