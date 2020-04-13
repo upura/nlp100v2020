@@ -1,7 +1,6 @@
 import joblib
 from collections import defaultdict
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
 
 
 def text2id(text):
