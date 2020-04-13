@@ -115,9 +115,12 @@ def eval_net(net, data_loader, device='cpu'):
     ys = []
     ypreds = []
     for x, y, nt in data_loader:
+        x = x.to(device)
+        y = y.to(device)
+        nt = nt.to(device)
         with torch.no_grad():
             y_pred = net(x, n_tokens=nt)
-            print(f'test loss: {loss_fn(y_pred, y.long()).item()}')
+            # print(f'test loss: {loss_fn(y_pred, y.long()).item()}')
             _, y_pred = torch.max(y_pred, 1)
             ys.append(y)
             ypreds.append(y_pred)
@@ -127,14 +130,18 @@ def eval_net(net, data_loader, device='cpu'):
     return
 
 
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+batch_size = 640
 train_data = TITLEDataset(section='train')
-train_loader = DataLoader(train_data, batch_size=len(train_data),
+train_loader = DataLoader(train_data, batch_size=batch_size,
                           shuffle=True, num_workers=4)
 test_data = TITLEDataset(section='test')
-test_loader = DataLoader(test_data, batch_size=len(test_data),
+test_loader = DataLoader(test_data, batch_size=batch_size,
                          shuffle=False, num_workers=4)
 
 net = RNN(train_data.vocab_size + 1, num_layers=2, output_size=4)
+net = net.to(device)
+
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01)
 
@@ -142,6 +149,9 @@ for epoch in tqdm(range(10)):
     losses = []
     net.train()
     for x, y, nt in train_loader:
+        x = x.to(device)
+        y = y.to(device)
+        nt = nt.to(device)
         y_pred = net(x, n_tokens=nt)
         loss = loss_fn(y_pred, y.long())
         net.zero_grad()
@@ -149,6 +159,6 @@ for epoch in tqdm(range(10)):
         optimizer.step()
         losses.append(loss.item())
         _, y_pred_train = torch.max(y_pred, 1)
-        print(f'train loss: {loss.item()}')
-        print(f'train acc: {(y_pred_train == y).sum().item() / len(y)}')
-    eval_net(net, test_loader)
+        # print(f'train loss: {loss.item()}')
+        # print(f'train acc: {(y_pred_train == y).sum().item() / len(y)}')
+    eval_net(net, test_loader, device)
