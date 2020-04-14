@@ -3,14 +3,15 @@ import pandas as pd
 
 
 df = pd.read_json('ch03/jawiki-country.json.gz', lines=True)
-ukText = df.query('title=="イギリス"')['text'].values
+ukText = df.query('title=="イギリス"')['text'].values[0]
+
 ls, fg = [], False
 template = '基礎情報'
 p1 = re.compile('\{\{' + template)
 p2 = re.compile('\}\}')
 p3 = re.compile('\|')
 p4 = re.compile('<ref(\s|>).+?(</ref>|$)')
-for l in ukText[0].split('\n'):
+for l in ukText.split('\n'):
     if fg:
         ml = [p2.match(l), p3.match(l)]
         if ml[0]:

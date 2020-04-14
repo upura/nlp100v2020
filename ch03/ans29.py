@@ -3,6 +3,16 @@ import requests
 import pandas as pd
 
 
+def remove_stress(dc):
+    r = re.compile("'+")
+    return {k: r.sub('', v) for k, v in dc.items()}
+
+
+def remove_inner_links(dc):
+    r = re.compile('\[\[(.+\||)(.+?)\]\]')
+    return {k: r.sub(r'\2', v) for k, v in dc.items()}
+
+
 def removeMk(v):
     r1 = re.compile("'+")
     r2 = re.compile('\[\[(.+\||)(.+?)\]\]')
@@ -23,14 +33,15 @@ def getUrl(dc):
 
 
 df = pd.read_json('ch03/jawiki-country.json.gz', lines=True)
-ukText = df.query('title=="イギリス"')['text'].values
+ukText = df.query('title=="イギリス"')['text'].values[0]
+
 ls, fg = [], False
 template = '基礎情報'
 p1 = re.compile('\{\{' + template)
 p2 = re.compile('\}\}')
 p3 = re.compile('\|')
 p4 = re.compile('<ref(\s|>).+?(</ref>|$)')
-for l in ukText[0].split('\n'):
+for l in ukText.split('\n'):
     if fg:
         ml = [p2.match(l), p3.match(l)]
         if ml[0]:
@@ -41,6 +52,6 @@ for l in ukText[0].split('\n'):
         fg = True
 p = re.compile('\|(.+?)\s=\s(.+)')
 ans = {m.group(1): m.group(2) for m in [p.match(c) for c in ls]}
-ans = {k: removeMk(v) for k, v in ans.items()}
-ans = getUrl(ans)
-print(ans)
+r = re.compile('\[\[(.+\||)(.+?)\]\]')
+ans = {k: r.sub(r'\2', removeMk(v)) for k, v in ans.items()}
+print(getUrl(remove_inner_links(remove_stress(ans))))
