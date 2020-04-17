@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from gensim.models import KeyedVectors
 import matplotlib.pyplot as plt
-from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+from scipy.cluster.hierarchy import linkage, dendrogram
 
 
 # http://www.fao.org/countryprofiles/iso3list/en/

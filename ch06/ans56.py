@@ -1,6 +1,5 @@
 import pandas as pd
 import joblib
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import recall_score, precision_score, f1_score
 
 

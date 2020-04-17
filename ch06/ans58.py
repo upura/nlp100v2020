@@ -1,5 +1,4 @@
 import pandas as pd
-import joblib
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt

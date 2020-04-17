@@ -1,11 +1,7 @@
 from tqdm import tqdm
 import torch
-from torch import nn, optim
+from torch import optim
 from torchtext import data
-from catalyst.dl import SupervisedRunner
-from catalyst.dl.callbacks import AccuracyCallback
-from torch.utils.data import Dataset, DataLoader
-from torchtext.data import BucketIterator, Iterator
 from transformers import BertForSequenceClassification
 
 

@@ -1,9 +1,7 @@
 import pandas as pd
-import joblib
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
 
 
 X_train = pd.read_table('ch06/train.feature.txt', header=None)
