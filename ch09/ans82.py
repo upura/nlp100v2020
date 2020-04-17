@@ -1,30 +1,36 @@
-import re
-import joblib
-from collections import defaultdict
 from tqdm import tqdm
-import pandas as pd
 import torch
 from torch import nn, optim
+from torchtext import data
+from catalyst.dl import SupervisedRunner
+from catalyst.dl.callbacks import AccuracyCallback
 from torch.utils.data import Dataset, DataLoader
+from torchtext.data import BucketIterator, Iterator
 
 
-def cleanText(text):
-    remove_marks_regex = re.compile("[,\.\(\)\[\]\*:;]|<.*?>")
-    shift_marks_regex = re.compile("([?!])")
-    # !?以外の記号の削除
-    text = remove_marks_regex.sub("", text)
-    # !?と単語の間にスペースを挿入
-    text = shift_marks_regex.sub(r" \1 ", text)
-    return text
+class BucketIteratorWrapper(DataLoader):
+    __initialized__ = False
 
+    def __init__(self, iterator: Iterator):
+        self.batch_size = iterator.batch_size
+        self.num_workers = 1
+        self.collate_fn = None
+        self.pin_memory = False
+        self.drop_last = False
+        self.timeout = 0
+        self.worker_init_fn = None
+        self.sampler = iterator
+        self.batch_sampler = iterator
+        self.__initialized__ = True
 
-def list2tensor(token_idxes, max_len=20, padding=True):
-    if len(token_idxes) > max_len:
-        token_idxes = token_idxes[:max_len]
-    n_tokens = len(token_idxes)
-    if padding:
-        token_idxes = token_idxes + [0] * (max_len - len(token_idxes))
-    return torch.tensor(token_idxes, dtype=torch.int64), n_tokens
+    def __iter__(self):
+        return map(lambda batch: {
+            'features': batch.TEXT,
+            'targets': batch.LABEL,
+        }, self.batch_sampler.__iter__())
+
+    def __len__(self):
+        return len(self.batch_sampler)
 
 
 class RNN(nn.Module):
@@ -42,113 +48,46 @@ class RNN(nn.Module):
                             batch_first=True, dropout=dropout)
         self.linear = nn.Linear(hidden_size, output_size)
 
-    def forward(self, x, h0=None, n_tokens=None):
-        # IDをEmbeddingで多次元のベクトルに変換する
-        # xは(batch_size, step_size)
-        # -> (batch_size, step_size, embedding_dim)
+    def forward(self, x, h0=None):
         x = self.emb(x)
-        # 初期状態h0と共にRNNにxを渡す
-        # xは(batch_size, step_size, embedding_dim)
-        # -> (batch_size, step_size, hidden_dim)
         x, h = self.lstm(x, h0)
-        # 最後のステップのみ取り出す
-        # xは(batch_size, step_size, hidden_dim)
-        # -> (batch_size, 1)
-        if n_tokens is not None:
-            # 入力のもともとの長さがある場合はそれを使用する
-            x = x[list(range(len(x))), n_tokens - 1, :]
-        else:
-            # なければ単純に最後を使用する
-            x = x[:, -1, :]
-        # 取り出した最後のステップを線形層に入れる
+        x = x[:, -1, :]
         x = self.linear(x)
-        # 余分な次元を削除する
-        # (batch_size, 1) -> (batch_size, )
-        # x = x.squeeze()
         return x
 
 
-class TITLEDataset(Dataset):
-    def __init__(self, section='train'):
-        X_train = pd.read_table(f'ch06/{section}.txt', header=None)
-        use_cols = ['TITLE', 'CATEGORY']
-        X_train.columns = use_cols
+TEXT = data.Field(sequential=True, lower=True, batch_first=True)
+LABELS = data.Field(sequential=False, batch_first=True, use_vocab=False)
 
-        d = defaultdict(int)
-        for text in X_train['TITLE']:
-            text = cleanText(text)
-            for word in text.split():
-                d[word] += 1
-        dc = sorted(d.items(), key=lambda x: x[1], reverse=True)
+train, val, test = data.TabularDataset.splits(
+    path='ch06', train='train2.txt',
+    validation='valid2.txt', test='test2.txt', format='tsv',
+    fields=[('TEXT', TEXT), ('LABEL', LABELS)])
 
-        words = []
-        idx = []
-        for i, a in enumerate(dc, 1):
-            words.append(a[0])
-            if a[1] < 2:
-                idx.append(0)
-            else:
-                idx.append(i)
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+train_iter, val_iter, test_iter = data.BucketIterator.splits(
+    (train, val, test), batch_sizes=(64, 64, 64), device=device, repeat=False, sort=False)
 
-        self.word2token = dict(zip(words, idx))
-        self.data = (X_train['TITLE'].apply(lambda x: list2tensor(
-            [self.word2token[word] if word in self.word2token.keys() else 0 for word in cleanText(x).split()])))
+train_loader = BucketIteratorWrapper(train_iter)
+valid_loader = BucketIteratorWrapper(val_iter)
+loaders = {"train": train_loader, "valid": valid_loader}
 
-        y_train = pd.read_table(f'ch06/{section}.txt', header=None)[1].map({'b': 0, 'e': 1, 't': 2, 'm': 3}).values
-        self.labels = y_train
+TEXT.build_vocab(train, min_freq=2)
+LABELS.build_vocab(train)
 
-    @property
-    def vocab_size(self):
-        return len(self.word2token)
+model = RNN(len(TEXT.vocab.stoi) + 1, num_layers=2, output_size=4)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-    def __len__(self):
-        return len(self.labels)
+runner = SupervisedRunner()
 
-    def __getitem__(self, idx):
-        data, n_tokens = self.data[idx]
-        label = self.labels[idx]
-        return data, label, n_tokens
-
-
-def eval_net(net, data_loader, device='cpu'):
-    net.eval()
-    ys = []
-    ypreds = []
-    for x, y, nt in data_loader:
-        with torch.no_grad():
-            y_pred = net(x, n_tokens=nt)
-            print(f'test loss: {loss_fn(y_pred, y.long()).item()}')
-            _, y_pred = torch.max(y_pred, 1)
-            ys.append(y)
-            ypreds.append(y_pred)
-    ys = torch.cat(ys)
-    ypreds = torch.cat(ypreds)
-    print(f'test acc: {(ys == ypreds).sum().item() / len(ys)}')
-    return
-
-
-train_data = TITLEDataset(section='train')
-train_loader = DataLoader(train_data, batch_size=len(train_data),
-                          shuffle=True, num_workers=4)
-test_data = TITLEDataset(section='test')
-test_loader = DataLoader(test_data, batch_size=len(test_data),
-                         shuffle=False, num_workers=4)
-
-net = RNN(train_data.vocab_size + 1, num_layers=2, output_size=4)
-loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.01)
-
-for epoch in tqdm(range(10)):
-    losses = []
-    net.train()
-    for x, y, nt in train_loader:
-        y_pred = net(x, n_tokens=nt)
-        loss = loss_fn(y_pred, y.long())
-        net.zero_grad()
-        loss.backward()
-        optimizer.step()
-        losses.append(loss.item())
-        _, y_pred_train = torch.max(y_pred, 1)
-        print(f'train loss: {loss.item()}')
-        print(f'train acc: {(y_pred_train == y).sum().item() / len(y)}')
-    eval_net(net, test_loader)
+runner.train(
+    model=model,
+    criterion=criterion,
+    optimizer=optimizer,
+    loaders=loaders,
+    logdir="./logdir",
+    callbacks=[AccuracyCallback(num_classes=4, accuracy_args=[1])],
+    num_epochs=10,
+    verbose=True,
+)
