@@ -1,4 +1,3 @@
-from tqdm import tqdm
 import torch
 from torch import nn, optim
 from torchtext import data
