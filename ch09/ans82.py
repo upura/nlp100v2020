@@ -66,7 +66,7 @@ train, val, test = data.TabularDataset.splits(
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 train_iter, val_iter, test_iter = data.BucketIterator.splits(
-    (train, val, test), batch_sizes=(64, 64, 64), device=device, repeat=False, sort=False)
+    (train, val, test), batch_sizes=(len(train), len(val), len(test)), device=device, repeat=False, sort=False)
 
 train_loader = BucketIteratorWrapper(train_iter)
 valid_loader = BucketIteratorWrapper(val_iter)
