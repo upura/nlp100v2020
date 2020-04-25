@@ -59,8 +59,8 @@ pairs = []
 target = blockList[7]
 for m in target:
     if int(m.dst) > -1:
-        preText = ''.join([mo.surface for mo in m.morphs])
-        postText = ''.join([mo.surface for mo in target[int(m.dst)].morphs])
+        preText = ''.join([mo.surface if mo.pos != '記号' else '' for mo in m.morphs])
+        postText = ''.join([mo.surface if mo.pos != '記号' else '' for mo in target[int(m.dst)].morphs])
         pairs.append([preText, postText])
 
 print(pairs)

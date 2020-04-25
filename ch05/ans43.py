@@ -55,9 +55,9 @@ blockList = [parseCabocha(block) for block in blockList]
 for b in blockList:
     for m in b:
         if int(m.dst) > -1:
-            preText = ''.join([mo.surface for mo in m.morphs])
+            preText = ''.join([mo.surface if mo.pos != '記号' else '' for mo in m.morphs])
             prePos = [mo.pos for mo in m.morphs]
-            postText = ''.join([mo.surface for mo in b[int(m.dst)].morphs])
+            postText = ''.join([mo.surface if mo.pos != '記号' else '' for mo in b[int(m.dst)].morphs])
             postPos = [mo.pos for mo in b[int(m.dst)].morphs]
             if '名詞' in prePos and '動詞' in postPos:
                 print(preText, postText, sep='\t')
