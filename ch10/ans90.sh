@@ -2,4 +2,6 @@ onmt_preprocess -train_src data/kyoto-train.ja -train_tgt data/kyoto-train.en -v
 onmt_train  \
   -data data/data  \
   -save_model data/demo-model  \
-  -train_steps 10000
+  -train_steps 100000  \
+  -world_size 1  \
+  -gpu_ranks 0
