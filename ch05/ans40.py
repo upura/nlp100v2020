@@ -6,7 +6,7 @@ class Morph:
         self.pos1 = dc['pos1']
 
 
-def parseCabocha(block):
+def parse_cabocha(block):
     res = []
     for line in block.split('\n'):
         if line == '':
@@ -24,10 +24,10 @@ def parseCabocha(block):
         res.append(Morph(lineDict))
 
 
-filename = 'ch05/neko.txt.cabocha'
+filename = 'ch05/ai.ja.txt.cabocha'
 with open(filename, mode='rt', encoding='utf-8') as f:
-    blockList = f.read().split('EOS\n')
-blockList = list(filter(lambda x: x != '', blockList))
-blockList = [parseCabocha(block) for block in blockList]
-for m in blockList[2]:
+    blocks = f.read().split('EOS\n')
+blocks = list(filter(lambda x: x != '', blocks))
+blocks = [parse_cabocha(block) for block in blocks]
+for m in blocks[2]:
     print(vars(m))

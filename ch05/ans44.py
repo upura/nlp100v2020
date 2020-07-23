@@ -16,8 +16,8 @@ class Chunk:
         self.srcs = []          # 係り元文節インデックス番号のリスト
 
 
-def parseCabocha(block):
-    def checkCreateChunk(tmp):
+def parse_cabocha(block):
+    def check_create_chunk(tmp):
         if len(tmp) > 0:
             c = Chunk(tmp, dst)
             res.append(c)
@@ -29,10 +29,10 @@ def parseCabocha(block):
     dst = None
     for line in block.split('\n'):
         if line == '':
-            tmp = checkCreateChunk(tmp)
+            tmp = check_create_chunk(tmp)
         elif line[0] == '*':
             dst = line.split(' ')[2].rstrip('D')
-            tmp = checkCreateChunk(tmp)
+            tmp = check_create_chunk(tmp)
         else:
             (surface, attr) = line.split('\t')
             attr = attr.split(',')
@@ -49,19 +49,19 @@ def parseCabocha(block):
     return res
 
 
-filename = 'ch05/neko.txt.cabocha'
+filename = 'ch05/ai.ja.txt.cabocha'
 with open(filename, mode='rt', encoding='utf-8') as f:
-    blockList = f.read().split('EOS\n')
-blockList = list(filter(lambda x: x != '', blockList))
-blockList = [parseCabocha(block) for block in blockList]
+    blocks = f.read().split('EOS\n')
+blocks = list(filter(lambda x: x != '', blocks))
+blocks = [parse_cabocha(block) for block in blocks]
 
 pairs = []
-target = blockList[7]
+target = blocks[7]
 for m in target:
     if int(m.dst) > -1:
-        preText = ''.join([mo.surface if mo.pos != '記号' else '' for mo in m.morphs])
-        postText = ''.join([mo.surface if mo.pos != '記号' else '' for mo in target[int(m.dst)].morphs])
-        pairs.append([preText, postText])
+        pre_text = ''.join([mo.surface if mo.pos != '記号' else '' for mo in m.morphs])
+        post_text = ''.join([mo.surface if mo.pos != '記号' else '' for mo in target[int(m.dst)].morphs])
+        pairs.append([pre_text, post_text])
 
 print(pairs)
 g = pydot.graph_from_edges(pairs)

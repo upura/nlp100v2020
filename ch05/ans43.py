@@ -13,8 +13,8 @@ class Chunk:
         self.srcs = []          # 係り元文節インデックス番号のリスト
 
 
-def parseCabocha(block):
-    def checkCreateChunk(tmp):
+def parse_cabocha(block):
+    def check_create_chunk(tmp):
         if len(tmp) > 0:
             c = Chunk(tmp, dst)
             res.append(c)
@@ -26,10 +26,10 @@ def parseCabocha(block):
     dst = None
     for line in block.split('\n'):
         if line == '':
-            tmp = checkCreateChunk(tmp)
+            tmp = check_create_chunk(tmp)
         elif line[0] == '*':
             dst = line.split(' ')[2].rstrip('D')
-            tmp = checkCreateChunk(tmp)
+            tmp = check_create_chunk(tmp)
         else:
             (surface, attr) = line.split('\t')
             attr = attr.split(',')
@@ -46,18 +46,18 @@ def parseCabocha(block):
     return res
 
 
-filename = 'ch05/neko.txt.cabocha'
+filename = 'ch05/ai.ja.txt.cabocha'
 with open(filename, mode='rt', encoding='utf-8') as f:
-    blockList = f.read().split('EOS\n')
-blockList = list(filter(lambda x: x != '', blockList))
-blockList = [parseCabocha(block) for block in blockList]
+    blocks = f.read().split('EOS\n')
+blocks = list(filter(lambda x: x != '', blocks))
+blocks = [parse_cabocha(block) for block in blocks]
 
-for b in blockList:
+for b in blocks:
     for m in b:
         if int(m.dst) > -1:
-            preText = ''.join([mo.surface if mo.pos != '記号' else '' for mo in m.morphs])
-            prePos = [mo.pos for mo in m.morphs]
-            postText = ''.join([mo.surface if mo.pos != '記号' else '' for mo in b[int(m.dst)].morphs])
-            postPos = [mo.pos for mo in b[int(m.dst)].morphs]
-            if '名詞' in prePos and '動詞' in postPos:
-                print(preText, postText, sep='\t')
+            pre_text = ''.join([mo.surface if mo.pos != '記号' else '' for mo in m.morphs])
+            pre_pos = [mo.pos for mo in m.morphs]
+            post_text = ''.join([mo.surface if mo.pos != '記号' else '' for mo in b[int(m.dst)].morphs])
+            post_pos = [mo.pos for mo in b[int(m.dst)].morphs]
+            if '名詞' in pre_pos and '動詞' in post_pos:
+                print(pre_text, post_text, sep='\t')

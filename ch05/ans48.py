@@ -13,8 +13,8 @@ class Chunk:
         self.srcs = []          # 係り元文節インデックス番号のリスト
 
 
-def parseCabocha(block):
-    def checkCreateChunk(tmp):
+def parse_cabocha(block):
+    def check_create_chunk(tmp):
         if len(tmp) > 0:
             c = Chunk(tmp, dst)
             res.append(c)
@@ -26,10 +26,10 @@ def parseCabocha(block):
     dst = None
     for line in block.split('\n'):
         if line == '':
-            tmp = checkCreateChunk(tmp)
+            tmp = check_create_chunk(tmp)
         elif line[0] == '*':
             dst = line.split(' ')[2].rstrip('D')
-            tmp = checkCreateChunk(tmp)
+            tmp = check_create_chunk(tmp)
         else:
             (surface, attr) = line.split('\t')
             attr = attr.split(',')
@@ -46,21 +46,21 @@ def parseCabocha(block):
     return res
 
 
-filename = 'ch05/neko.txt.cabocha'
+filename = 'ch05/ai.ja.txt.cabocha'
 with open(filename, mode='rt', encoding='utf-8') as f:
-    blockList = f.read().split('EOS\n')
-blockList = list(filter(lambda x: x != '', blockList))
-blockList = [parseCabocha(block) for block in blockList]
+    blocks = f.read().split('EOS\n')
+blocks = list(filter(lambda x: x != '', blocks))
+blocks = [parse_cabocha(block) for block in blocks]
 
-for b in blockList:
+for b in blocks:
     for m in b:
         text = []
         if '名詞' in [s.pos for s in m.morphs] and int(m.dst) != -1:
-            currentChunk = m
-            text.append(''.join([m.surface for m in currentChunk.morphs]))
-            nextChunk = b[int(currentChunk.dst)]
-            while int(currentChunk.dst) != -1:
-                text.append(''.join([m.surface for m in nextChunk.morphs]))
-                currentChunk = nextChunk
-                nextChunk = b[int(nextChunk.dst)]
+            current_chunk = m
+            text.append(''.join([m.surface for m in current_chunk.morphs]))
+            next_chunk = b[int(current_chunk.dst)]
+            while int(current_chunk.dst) != -1:
+                text.append(''.join([m.surface for m in next_chunk.morphs]))
+                current_chunk = next_chunk
+                next_chunk = b[int(next_chunk.dst)]
             print(*text, sep=' -> ')

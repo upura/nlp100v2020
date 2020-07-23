@@ -1,1 +1,1 @@
-cat ch04/neko.txt | cabocha -f1 > ch05/neko.txt.cabocha
+cat ch05/ai.ja/ai.ja.txt | cabocha -f1 > ch05/ai.ja.txt.cabocha
