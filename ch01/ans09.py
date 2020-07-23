@@ -1,7 +1,7 @@
 import random
 
 
-def shuffleWord(word):
+def shuffle_word(word):
     if len(word) <= 4:
         return word
     else:
@@ -12,5 +12,5 @@ def shuffleWord(word):
 
 
 text = 'I couldn’t believe that I could actually understand what I was reading : the phenomenal power of the human mind .'
-ans = [shuffleWord(w) for w in text.split()]
-print(ans)
+ans = [shuffle_word(w) for w in text.split()]
+print(' '.join(ans))
