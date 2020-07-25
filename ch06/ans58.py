@@ -1,7 +1,7 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
 
 
 X_train = pd.read_table('ch06/train.feature.txt', header=None)
@@ -27,4 +27,4 @@ plt.plot(C_candidate, train_acc, label='train acc')
 plt.plot(C_candidate, valid_acc, label='valid acc')
 plt.plot(C_candidate, test_acc, label='test acc')
 plt.legend()
-plt.show()
+plt.savefig('ch06/ans58.png')
