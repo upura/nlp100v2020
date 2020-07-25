@@ -1,5 +1,5 @@
-from sklearn.model_selection import train_test_split
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 
 newsCorpora = pd.read_table('ch06/NewsAggregatorDataset/newsCorpora.csv', header=None)
@@ -7,7 +7,7 @@ newsCorpora.columns = ['ID', 'TITLE', 'URL', 'PUBLISHER', 'CATEGORY', 'STORY', '
 newsCorpora = newsCorpora[newsCorpora['PUBLISHER'].isin(
     ['Reuters', 'Huffington Post', 'Businessweek', 'Contactmusic.com', 'Daily Mail'])].sample(frac=1, random_state=0)
 
-X = newsCorpora[['TITLE', 'CATEGORY']]
+X = newsCorpora[['TITLE', 'CATEGORY']].copy()
 X['CATEGORY'] = X['CATEGORY'].map({'b': 0, 'e': 1, 't': 2, 'm': 3})
 y = newsCorpora['CATEGORY']
 
