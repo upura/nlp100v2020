@@ -71,7 +71,7 @@ regex==2020.4.4
 requests==2.23.0
 requests-oauthlib==1.3.0
 retrying==1.3.3
-rsa==4.0
+rsa==4.1
 s3transfer==0.3.3
 sacremoses==0.0.41
 scikit-image==0.16.2
