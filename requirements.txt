@@ -28,7 +28,7 @@ google-auth-oauthlib==0.4.1
 grpcio==1.28.1
 idna==2.9
 imageio==2.8.0
-ipython==7.13.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 itsdangerous==1.1.0
 japanize-matplotlib==1.0.5
