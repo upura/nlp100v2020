@@ -35,7 +35,7 @@ japanize-matplotlib==1.0.5
 jedi==0.17.0
 Jinja2==2.11.3
 jmespath==0.9.5
-joblib==0.14.1
+joblib==1.2.0
 kiwisolver==1.2.0
 Markdown==3.2.1
 MarkupSafe==1.1.1
