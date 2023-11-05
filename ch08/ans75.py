@@ -38,8 +38,8 @@ for epoc in range(100):
     loss.backward()
     optimizer.step()
 
-    train_losses.append(loss)
-    valid_losses.append(loss_fn(net(X_valid), y_valid))
+    train_losses.append(loss.detach().numpy())
+    valid_losses.append(loss_fn(net(X_valid), y_valid).detach().numpy())
 
     _, y_pred_train = torch.max(net(X), 1)
     train_accs.append((y_pred_train == y).sum().item() / len(y))

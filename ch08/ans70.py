@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def culcSwem(row):
     global model
-    swem = [model[w] if w in model.vocab else np.zeros(shape=(model.vector_size,)) for w in row['TITLE'].split()]
+    swem = [model[w] if w in model.key_to_index else np.zeros(shape=(model.vector_size,)) for w in row['TITLE'].split()]
     swem = np.mean(np.array(swem), axis=0)
     return swem
 
@@ -36,7 +36,7 @@ joblib.dump(X_train, 'ch08/X_train.joblib')
 joblib.dump(X_valid, 'ch08/X_valid.joblib')
 joblib.dump(X_test, 'ch08/X_test.joblib')
 
-y_data = data['CATEGORY'].map({'b': 0, 'e': 1, 't': 2, 'm': 3})
+y_data = data['CATEGORY']
 
 y_train = y_data.values[:n_train]
 y_valid = y_data.values[n_train:n_train + n_valid]
