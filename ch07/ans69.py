@@ -4,18 +4,18 @@ import pandas as pd
 from gensim.models import KeyedVectors
 from sklearn.manifold import TSNE
 
-# http://www.fao.org/countryprofiles/iso3list/en/
-country = pd.read_table('ch07/countries.tsv')
-country = country['Short name'].values
+df = pd.read_csv('ch07/questions-words.txt', sep=' ')
+df = df.reset_index()
+df.columns = ['v1', 'v2', 'v3', 'v4']
+df.dropna(inplace=True)
+df = df.iloc[:5030]
+country = list(set(df["v4"].values))
 
 model = KeyedVectors.load_word2vec_format('ch07/GoogleNews-vectors-negative300.bin', binary=True)
 
 countryVec = []
-countryName = []
 for c in country:
-    if c in model.vocab:
-        countryVec.append(model[c])
-        countryName.append(c)
+    countryVec.append(model[c])
 
 X = np.array(countryVec)
 tsne = TSNE(random_state=0, n_iter=15000, metric='cosine')
