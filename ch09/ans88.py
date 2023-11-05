@@ -1,11 +1,11 @@
 import torch
-from torch import nn, optim
-from torchtext import data
 from catalyst.dl import SupervisedRunner
 from catalyst.dl.callbacks import AccuracyCallback
-from torch.utils.data import DataLoader
-from torchtext.data import Iterator
 from gensim.models import KeyedVectors
+from torch import nn, optim
+from torch.utils.data import DataLoader
+from torchtext import data
+from torchtext.data import Iterator
 
 
 class BucketIteratorWrapper(DataLoader):

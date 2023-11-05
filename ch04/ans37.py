@@ -1,6 +1,7 @@
 from collections import defaultdict
-import matplotlib.pyplot as plt
+
 import japanize_matplotlib
+import matplotlib.pyplot as plt
 
 
 def parse_mecab(block):

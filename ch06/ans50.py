@@ -1,7 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-
 newsCorpora = pd.read_table('ch06/NewsAggregatorDataset/newsCorpora.csv', header=None)
 newsCorpora.columns = ['ID', 'TITLE', 'URL', 'PUBLISHER', 'CATEGORY', 'STORY', 'HOSTNAME', 'TIMESTAMP']
 newsCorpora = newsCorpora[newsCorpora['PUBLISHER'].isin(

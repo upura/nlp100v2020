@@ -1,7 +1,6 @@
-import pandas as pd
 import joblib
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
-
 
 X_train = pd.read_table('ch06/train.feature.txt', header=None)
 y_train = pd.read_table('ch06/train.txt', header=None)[1]

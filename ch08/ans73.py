@@ -3,7 +3,6 @@ import numpy as np
 import torch
 from torch import nn, optim
 
-
 X_train = joblib.load('ch08/X_train.joblib')
 y_train = joblib.load('ch08/y_train.joblib')
 X_train = torch.from_numpy(X_train.astype(np.float32)).clone()

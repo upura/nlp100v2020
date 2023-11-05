@@ -1,7 +1,7 @@
-from tqdm import tqdm
 import torch
 from torch import optim
 from torchtext import data
+from tqdm import tqdm
 from transformers import BertForSequenceClassification
 
 

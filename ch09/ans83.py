@@ -1,9 +1,9 @@
 import torch
-from torch import nn, optim
-from torchtext import data
 from catalyst.dl import SupervisedRunner
 from catalyst.dl.callbacks import AccuracyCallback
+from torch import nn, optim
 from torch.utils.data import DataLoader
+from torchtext import data
 from torchtext.data import Iterator
 
 

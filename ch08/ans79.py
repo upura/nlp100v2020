@@ -1,11 +1,10 @@
 import joblib
-import numpy as np
-from tqdm import tqdm
-import torch
-from torch.utils.data import TensorDataset, DataLoader
-from torch import nn, optim
 import matplotlib.pyplot as plt
-
+import numpy as np
+import torch
+from torch import nn, optim
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 
 X_train = joblib.load('ch08/X_train.joblib')
 y_train = joblib.load('ch08/y_train.joblib')
