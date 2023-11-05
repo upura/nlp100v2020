@@ -4,15 +4,9 @@ from gensim.models import KeyedVectors
 from tqdm import tqdm
 
 
-def cosSim(v1, v2):
-    return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
-
-
 def culcCosSim(row):
     global model
-    w1v = model[row['Word 1']]
-    w2v = model[row['Word 2']]
-    return cosSim(w1v, w2v)
+    return model(row['Word 1'], row['Word 2'])
 
 
 tqdm.pandas()
