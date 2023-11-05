@@ -1,6 +1,6 @@
 import sys
-import pandas as pd
 
+import pandas as pd
 
 if len(sys.argv) == 1:
     print('Set arg n, like "python ch02/ans14.py 5"')

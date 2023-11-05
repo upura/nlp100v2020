@@ -1,9 +1,8 @@
-import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from gensim.models import KeyedVectors
 from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
-
 
 # http://www.fao.org/countryprofiles/iso3list/en/
 country = pd.read_table('ch07/countries.tsv')

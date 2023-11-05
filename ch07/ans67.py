@@ -1,8 +1,7 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 from gensim.models import KeyedVectors
 from sklearn.cluster import KMeans
-
 
 # http://www.fao.org/countryprofiles/iso3list/en/
 country = pd.read_table('ch07/countries.tsv')

@@ -1,6 +1,6 @@
-from torchtext import data
 import torch
 from torch import nn
+from torchtext import data
 
 
 class RNN(nn.Module):

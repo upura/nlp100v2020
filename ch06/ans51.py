@@ -2,7 +2,6 @@ import joblib
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 
-
 X_train = pd.read_table('ch06/train.txt', header=None)
 X_valid = pd.read_table('ch06/valid.txt', header=None)
 X_test = pd.read_table('ch06/test.txt', header=None)

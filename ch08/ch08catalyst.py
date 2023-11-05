@@ -1,10 +1,10 @@
 import joblib
 import numpy as np
 import torch
-from torch.utils.data import TensorDataset, DataLoader
-from torch import nn, optim
 from catalyst.dl import SupervisedRunner
 from catalyst.dl.callbacks import AccuracyCallback
+from torch import nn, optim
+from torch.utils.data import DataLoader, TensorDataset
 
 
 def get_Xy(category):

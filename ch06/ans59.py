@@ -1,8 +1,7 @@
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
-
 
 X_train = pd.read_table('ch06/train.feature.txt', header=None)
 X_valid = pd.read_table('ch06/valid.feature.txt', header=None)

@@ -1,7 +1,6 @@
-import pandas as pd
 import joblib
-from sklearn.metrics import recall_score, precision_score, f1_score
-
+import pandas as pd
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 X_train = pd.read_table('ch06/train.feature.txt', header=None)
 X_test = pd.read_table('ch06/test.feature.txt', header=None)

@@ -1,9 +1,8 @@
 import joblib
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch import nn, optim
-import matplotlib.pyplot as plt
-
 
 X_train = joblib.load('ch08/X_train.joblib')
 y_train = joblib.load('ch08/y_train.joblib')

@@ -1,6 +1,5 @@
 from torchtext import data
 
-
 TEXT = data.Field(sequential=True, lower=True, batch_first=True)
 LABELS = data.Field(sequential=False, batch_first=True, use_vocab=False)
 

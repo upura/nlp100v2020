@@ -1,9 +1,8 @@
-import pandas as pd
-import numpy as np
-from gensim.models import KeyedVectors
 import matplotlib.pyplot as plt
-from scipy.cluster.hierarchy import linkage, dendrogram
-
+import numpy as np
+import pandas as pd
+from gensim.models import KeyedVectors
+from scipy.cluster.hierarchy import dendrogram, linkage
 
 # http://www.fao.org/countryprofiles/iso3list/en/
 country = pd.read_table('ch07/countries.tsv')

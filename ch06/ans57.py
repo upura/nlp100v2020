@@ -1,6 +1,5 @@
 import joblib
 
-
 clf = joblib.load('ch06/model.joblib')
 vocabulary_ = joblib.load('ch06/vocabulary_.joblib')
 coefs = clf.coef_

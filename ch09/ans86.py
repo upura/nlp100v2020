@@ -1,10 +1,10 @@
 import torch
-from torch import nn, optim
 import torch.nn.functional as F
-from torchtext import data
-from torch.utils.data import DataLoader
-from torchtext.data import Iterator
 from gensim.models import KeyedVectors
+from torch import nn, optim
+from torch.utils.data import DataLoader
+from torchtext import data
+from torchtext.data import Iterator
 
 
 class BucketIteratorWrapper(DataLoader):

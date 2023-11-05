@@ -1,6 +1,7 @@
 import re
-import requests
+
 import pandas as pd
+import requests
 
 
 def remove_stress(dc):
