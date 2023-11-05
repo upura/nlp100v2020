@@ -13,6 +13,6 @@ y = newsCorpora['CATEGORY']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=0)
 X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, stratify=y_test, random_state=0)
 
-X_train.to_csv('ch06/train2.txt', sep='\t', index=False, header=None)
-X_valid.to_csv('ch06/valid2.txt', sep='\t', index=False, header=None)
-X_test.to_csv('ch06/test2.txt', sep='\t', index=False, header=None)
+X_train.to_csv('ch06/train.txt', sep='\t', index=False, header=None)
+X_valid.to_csv('ch06/valid.txt', sep='\t', index=False, header=None)
+X_test.to_csv('ch06/test.txt', sep='\t', index=False, header=None)
