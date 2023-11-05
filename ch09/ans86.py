@@ -1,100 +1,120 @@
+# ref: https://www.shoeisha.co.jp/book/detail/9784798157184
+import re
+from collections import defaultdict
+
+import joblib
+import pandas as pd
 import torch
-import torch.nn.functional as F
 from gensim.models import KeyedVectors
 from torch import nn, optim
-from torch.utils.data import DataLoader
-from torchtext import data
-from torchtext.data import Iterator
+from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
 
 
-class BucketIteratorWrapper(DataLoader):
-    __initialized__ = False
+def cleanText(text):
+    remove_marks_regex = re.compile("[,\.\(\)\[\]\*:;]|<.*?>")
+    shift_marks_regex = re.compile("([?!])")
+    # !?以外の記号の削除
+    text = remove_marks_regex.sub("", text)
+    # !?と単語の間にスペースを挿入
+    text = shift_marks_regex.sub(r" \1 ", text)
+    return text
 
-    def __init__(self, iterator: Iterator):
-        self.batch_size = iterator.batch_size
-        self.num_workers = 1
-        self.collate_fn = None
-        self.pin_memory = False
-        self.drop_last = False
-        self.timeout = 0
-        self.worker_init_fn = None
-        self.sampler = iterator
-        self.batch_sampler = iterator
-        self.__initialized__ = True
 
-    def __iter__(self):
-        return map(lambda batch: {
-            'features': batch.TEXT,
-            'targets': batch.LABEL,
-        }, self.batch_sampler.__iter__())
-
-    def __len__(self):
-        return len(self.batch_sampler)
+def list2tensor(token_idxes, max_len=20, padding=True):
+    if len(token_idxes) > max_len:
+        token_idxes = token_idxes[:max_len]
+    n_tokens = len(token_idxes)
+    if padding:
+        token_idxes = token_idxes + [0] * (max_len - len(token_idxes))
+    return torch.tensor(token_idxes, dtype=torch.int64), n_tokens
 
 
 class CNN(nn.Module):
-
-    def __init__(self, output_dim, kernel_num, kernel_sizes=[3, 4, 5], dropout=0.5, static=False):
-        super(CNN, self).__init__()
-
+    def __init__(self, num_embeddings,
+                 embedding_dim=300,
+                 hidden_size=300,
+                 output_size=1,
+                 kernel_size=3):
+        super().__init__()
+        # self.emb = nn.Embedding(num_embeddings, embedding_dim,
+        #                         padding_idx=0)
         model = KeyedVectors.load_word2vec_format('ch07/GoogleNews-vectors-negative300.bin', binary=True)
         weights = torch.FloatTensor(model.vectors)
-        self.embed = nn.Embedding.from_pretrained(weights)
-        self.convs1 = nn.ModuleList([nn.Conv2d(1, kernel_num, (k, self.embed.weight.shape[1])) for k in kernel_sizes])
-        self.dropout = nn.Dropout(dropout)
-        self.fc1 = nn.Linear(len(kernel_sizes) * kernel_num, output_dim)
-        self.static = static
-
-    def conv_and_pool(self, x, conv):
-        x = F.relu(conv(x)).squeeze(3)
-        x = F.max_pool1d(x, x.size(2)).squeeze(2)
-        return x
+        self.emb = nn.Embedding.from_pretrained(weights)
+        self.content_conv = nn.Sequential(
+            nn.Conv1d(in_channels=embedding_dim,
+                      out_channels=hidden_size,
+                      kernel_size=kernel_size),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=(20 - kernel_size + 1))
+        )
+        self.linear = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
-        x = self.embed(x)
-
-        if self.static:
-            x = x.detach()
-
-        x = x.unsqueeze(1)
-        x = x.float()
-        x = [F.relu(conv(x)).squeeze(3) for conv in self.convs1]
-
-        x = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in x]
-
-        x = torch.cat(x, 1)
-        x = self.dropout(x)
-        logit = self.fc1(x)
-        return logit
+        x = self.emb(x)
+        content_out = self.content_conv(x.permute(0, 2, 1))
+        reshaped = content_out.view(content_out.size(0), -1)
+        x = self.linear(reshaped)
+        return x
 
 
-TEXT = data.Field(sequential=True, lower=True, batch_first=True)
-LABELS = data.Field(sequential=False, batch_first=True, use_vocab=False)
+class TITLEDataset(Dataset):
+    def __init__(self, section='train'):
+        X_train = pd.read_table(f'ch06/{section}.txt', header=None)
+        use_cols = ['TITLE', 'CATEGORY']
+        X_train.columns = use_cols
 
-train, val, test = data.TabularDataset.splits(
-    path='ch06', train='train2.txt',
-    validation='valid2.txt', test='test2.txt', format='tsv',
-    fields=[('TEXT', TEXT), ('LABEL', LABELS)])
+        d = defaultdict(int)
+        for text in X_train['TITLE']:
+            text = cleanText(text)
+            for word in text.split():
+                d[word] += 1
+        dc = sorted(d.items(), key=lambda x: x[1], reverse=True)
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-train_iter, val_iter, test_iter = data.BucketIterator.splits(
-    (train, val, test), batch_sizes=(64, 64, 64), device=device, repeat=False, sort=False)
+        words = []
+        idx = []
+        for i, a in enumerate(dc, 1):
+            words.append(a[0])
+            if a[1] < 2:
+                idx.append(0)
+            else:
+                idx.append(i)
 
-train_loader = BucketIteratorWrapper(train_iter)
-valid_loader = BucketIteratorWrapper(val_iter)
-loaders = {"train": train_loader, "valid": valid_loader}
+        self.word2token = dict(zip(words, idx))
+        self.data = (X_train['TITLE'].apply(lambda x: list2tensor(
+            [self.word2token[word] if word in self.word2token.keys() else 0 for word in cleanText(x).split()])))
 
-TEXT.build_vocab(train, min_freq=2)
-LABELS.build_vocab(train)
-model = CNN(output_dim=4, kernel_num=3, kernel_sizes=[3, 4, 5], dropout=0.2)
+        y_train = pd.read_table(f'ch06/{section}.txt', header=None)[1].values
+        self.labels = y_train
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
+    @property
+    def vocab_size(self):
+        return len(self.word2token)
 
-for epoch in range(1):
-    model.train()
-    for batch in train_iter:
-        x, y = batch.TEXT, batch.LABEL
-        y_pred = model(x)
-        print(y_pred)
-        print(y_pred.shape)
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        data, n_tokens = self.data[idx]
+        label = self.labels[idx]
+        return data, label, n_tokens
+
+
+if __name__ == "__main__":
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    batch_size = 640
+    train_data = TITLEDataset(section='train')
+    train_loader = DataLoader(train_data, batch_size=batch_size,
+                            shuffle=True, num_workers=4)
+
+    net = CNN(train_data.vocab_size + 1, output_size=4)
+    net = net.to(device)
+
+    for epoch in tqdm(range(10)):
+        net.train()
+        for x, y, nt in train_loader:
+            x = x.to(device)
+            y = y.to(device)
+            nt = nt.to(device)
+            y_pred = net(x)

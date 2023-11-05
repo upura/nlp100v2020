@@ -1,6 +1,31 @@
+# ref: https://www.shoeisha.co.jp/book/detail/9784798157184
+import re
+from collections import defaultdict
+
+import joblib
+import pandas as pd
 import torch
 from torch import nn
-from torchtext import data
+from torch.utils.data import DataLoader, Dataset
+
+
+def cleanText(text):
+    remove_marks_regex = re.compile("[,\.\(\)\[\]\*:;]|<.*?>")
+    shift_marks_regex = re.compile("([?!])")
+    # !?以外の記号の削除
+    text = remove_marks_regex.sub("", text)
+    # !?と単語の間にスペースを挿入
+    text = shift_marks_regex.sub(r" \1 ", text)
+    return text
+
+
+def list2tensor(token_idxes, max_len=20, padding=True):
+    if len(token_idxes) > max_len:
+        token_idxes = token_idxes[:max_len]
+    n_tokens = len(token_idxes)
+    if padding:
+        token_idxes = token_idxes + [0] * (max_len - len(token_idxes))
+    return torch.tensor(token_idxes, dtype=torch.int64), n_tokens
 
 
 class RNN(nn.Module):
@@ -18,34 +43,82 @@ class RNN(nn.Module):
                             batch_first=True, dropout=dropout)
         self.linear = nn.Linear(hidden_size, output_size)
 
-    def forward(self, x, h0=None):
+    def forward(self, x, h0=None, n_tokens=None):
+        # IDをEmbeddingで多次元のベクトルに変換する
+        # xは(batch_size, step_size)
+        # -> (batch_size, step_size, embedding_dim)
         x = self.emb(x)
+        # 初期状態h0と共にRNNにxを渡す
+        # xは(batch_size, step_size, embedding_dim)
+        # -> (batch_size, step_size, hidden_dim)
         x, h = self.lstm(x, h0)
-        x = x[:, -1, :]
+        # 最後のステップのみ取り出す
+        # xは(batch_size, step_size, hidden_dim)
+        # -> (batch_size, 1)
+        if n_tokens is not None:
+            # 入力のもともとの長さがある場合はそれを使用する
+            x = x[list(range(len(x))), n_tokens - 1, :]
+        else:
+            # なければ単純に最後を使用する
+            x = x[:, -1, :]
+        # 取り出した最後のステップを線形層に入れる
         x = self.linear(x)
+        # 余分な次元を削除する
+        # (batch_size, 1) -> (batch_size, )
+        # x = x.squeeze()
         return x
 
 
-TEXT = data.Field(sequential=True, lower=True, batch_first=True)
-LABELS = data.Field(sequential=False, batch_first=True, use_vocab=False)
+class TITLEDataset(Dataset):
+    def __init__(self):
+        X_train = pd.read_table('ch06/train.txt', header=None)
+        use_cols = ['TITLE', 'CATEGORY']
+        X_train.columns = use_cols
 
-train, val, test = data.TabularDataset.splits(
-    path='ch06', train='train2.txt',
-    validation='valid2.txt', test='test2.txt', format='tsv',
-    fields=[('TEXT', TEXT), ('LABEL', LABELS)])
+        d = defaultdict(int)
+        for text in X_train['TITLE']:
+            text = cleanText(text)
+            for word in text.split():
+                d[word] += 1
+        dc = sorted(d.items(), key=lambda x: x[1], reverse=True)
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-train_iter, val_iter, test_iter = data.Iterator.splits(
-    (train, val, test), batch_sizes=(64, 64, 64), device=device, repeat=False, sort=False)
+        words = []
+        idx = []
+        for i, a in enumerate(dc, 1):
+            words.append(a[0])
+            if a[1] < 2:
+                idx.append(0)
+            else:
+                idx.append(i)
 
-TEXT.build_vocab(train, min_freq=2)
-LABELS.build_vocab(train)
-model = RNN(len(TEXT.vocab.stoi) + 1, num_layers=2, output_size=4)
+        self.word2token = dict(zip(words, idx))
+        self.data = (X_train['TITLE'].apply(lambda x: list2tensor([self.word2token[word] for word in cleanText(x).split()])))
 
-for epoch in range(1):
-    model.train()
-    for batch in train_iter:
-        x, y = batch.TEXT, batch.LABEL
-        y_pred = model(x)
-        print(y_pred)
-        print(y_pred.shape)
+        y_train = pd.read_table('ch06/train.txt', header=None)[1].values
+        self.labels = y_train
+
+    @property
+    def vocab_size(self):
+        return len(self.word2token)
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        data, n_tokens = self.data[idx]
+        label = self.labels[idx]
+        return data, label, n_tokens
+
+
+if __name__ == "__main__":
+    train_data = TITLEDataset()
+    train_loader = DataLoader(train_data, batch_size=len(train_data),
+                            shuffle=True, num_workers=4)
+
+    net = RNN(train_data.vocab_size + 1, num_layers=2, output_size=4)
+
+    for epoch in range(1):
+        net.train()
+        for x, y, nt in train_loader:
+            y_pred = net(x, n_tokens=nt)
+            print(y_pred)

@@ -1,12 +1,31 @@
-from torchtext import data
+from collections import defaultdict
 
-TEXT = data.Field(sequential=True, lower=True, batch_first=True)
-LABELS = data.Field(sequential=False, batch_first=True, use_vocab=False)
+import joblib
+import pandas as pd
 
-train, valid, test = data.TabularDataset.splits(
-    path='ch06', train='train2.txt',
-    validation='valid2.txt', test='test2.txt', format='tsv',
-    fields=[('text', TEXT), ('labels', LABELS)])
 
-TEXT.build_vocab(train, min_freq=2)
-print(TEXT.vocab.stoi)
+def text2id(text):
+    return [word2token[word] for word in text.split()]
+
+
+X_train = pd.read_table('ch06/train.txt', header=None)
+use_cols = ['TITLE', 'CATEGORY']
+X_train.columns = use_cols
+
+d = defaultdict(int)
+for sentence in X_train['TITLE']:
+    for word in sentence.split():
+        d[word] += 1
+dc = sorted(d.items(), key=lambda x: x[1], reverse=True)
+
+words = []
+idx = []
+for i, a in enumerate(dc, 1):
+    words.append(a[0])
+    if a[1] < 2:
+        idx.append(0)
+    else:
+        idx.append(i)
+
+word2token = dict(zip(words, idx))
+print(X_train['TITLE'].apply(text2id))
