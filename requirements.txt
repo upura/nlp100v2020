@@ -9,3 +9,6 @@ gensim==4.3.2
 numpy==1.26.1
 tqdm==4.66.1
 scipy==1.11.3
+transformers==4.35.0
+evaluate==0.4.1
+accelerate-0.24.1
